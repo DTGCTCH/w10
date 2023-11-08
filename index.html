@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>
+		환각
+	</title>
+	<style type="text/css">
+		body{
+			margin: 0;
+		}
+
+		.hidden{
+			display: none;
+		}
+
+		#gameOverPopup{
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			text-align: center;
+		}
+
+		.gametextbox{
+			margin: auto;
+			text-align: center;
+		}
+
+		.gametextbox input{
+			border-style: none;
+		}
+
+		#pillbox{
+			position:absolute;
+			width: 20px;
+			height: 20px;
+			background: red;
+		}
+
+		.alert{
+			postion:absolute;
+			width:100vw;
+			height: 100vh;
+			background: black;
+			color: white;
+		}
+	</style>
+</head>
+<body>
+	<div class="alert">
+		<h1>광과민성 발작 경고</h1>
+		<p>번쩍이는 빛이나 무늬와 같은 시각적 이미지에 노출될 시 발작을 일으킬 수 있습니다.<br>광과민성 간질 발작은 현기증, 환각, 눈이나 얼굴의 경련, 팔이나 다리의 경련이나 떨림, 방향 감각 상실,<br> 정신 착란, 일시적인 의식 상실등과 같은 여러가지 증상으로 나타날수 있습니다.<br><br>이런 증상 중 한가지라도 나타나게 되면 즉시 이용을 중지하고 휴식을 취하세요.</p>
+		<h3>-조명이 밝은 곳에서 이용을 하십시오<br>
+		-피곤할 때는 이용을 하지마십시오</h3>
+		<button id="startbutton">시작하기</button>
+	</div>
+
+	<div class="gametextbox pageA hidden">
+		<input type="text" id="timer" value="" readonly/>
+	</div>
+	<div class="gametextbox pageA hidden">
+		<input type="text" id="score" value="" readonly/>
+	</div>
+	<div id="gameOverPopup" class="hidden pageA">
+		<p>
+			Game Over
+		</p>
+		<span id="scoreDisplay">0</span>
+		<p id="scoreCount">
+			획득 점수: 0
+		</p>
+		<p id="restartCount">
+			재시작 횟수: 0
+		</p>
+		<button id='restart'>
+			Restart
+		</button>
+		<button id='quit'>
+			Quit
+		</button>
+	</div>
+
+	<div class="hidden pageB">
+		1회 플레이 페이지 이동
+	</div>
+
+	<div class="hidden pageC">
+		2회 이상 플레이 페이지 이동
+	</div>
+
+	<script type="text/javascript">
+		document.getElementById('startbutton').addEventListener('click', function (){
+			Ftimer();
+			gameBox();
+			document.querySelector('.alert').classList.add('hidden');
+			const gametextboxes = document.querySelectorAll('.gametextbox');
+		    gametextboxes.forEach(function (element) {
+		        element.classList.remove('hidden');
+		    });
+		});
+
+		//타이머 설정//
+		const timer = document.getElementById('timer')
+		let time = 3000;
+		let sec = 3;
+		timer.value = "남은 시간:" + sec + "sec";
+		let playtime;
+
+		function Ftimer(){
+			playtime = setInterval(
+				function(){
+					time = time - 1000;
+					if(sec>0){
+						sec = sec - 1;
+						timer.value = "남은 시간: " + sec + "sec";
+					}
+					if(sec===0){
+						clearInterval(playtime);
+						scoreCount.textContent = "획득 점수: " + sv;
+						restartCount++;
+                   		restartCountElement.textContent = "재시작 횟수: " + restartCount;
+						gameOverPopup.classList.remove("hidden");
+						isClickEnabled = false;
+
+						let playerRank = "신입";
+						for(const rankInfo of rankData){
+							if(sv >= rankInfo.minScore && sv <= rankInfo.maxScore) {
+								playerRank = rankInfo.rank;
+								break;
+							}
+						}
+						const scoreDisplay = document.getElementById('scoreDisplay');
+						scoreDisplay.textContent = playerRank;
+					}
+				},1000);
+		}
+
+		//팝업 리스타트 버튼//
+		const restartButton = document.getElementById('restart')
+		const restartCountElement = document.getElementById("restartCount")
+		let restartCount = -1;
+
+		restartButton.addEventListener('click',function(){
+			gameOverPopup.classList.add('hidden');
+			sec = 3;
+			timer.value = "남은 시간: " + sec + "sec";
+			sv = 0
+			score.value =  "획득 점수: " + sv;
+			isClickEnabled = true;
+			Ftimer();
+			gameBox();
+		})
+
+		//팝업 종료 버튼//
+		document.getElementById('quit').addEventListener('click', function () {
+		    let pageAElements = document.querySelectorAll('.pageA');
+		    pageAElements.forEach(element => {
+		        element.style.display = 'none';
+		    });
+
+		    let pillboxes = document.querySelectorAll("#pillbox");
+		    pillboxes.forEach(function (pillbox) {
+		        pillbox.parentNode.removeChild(pillbox);
+		    });
+
+		    //.pageB/C, .hidden 붙여야함 이제
+		    let pageBElements = document.querySelectorAll(".pageB");
+		    let pageCElements = document.querySelectorAll(".pageC");
+		    if(restartCount < 2){
+		    	pageBElements.forEach(element => {
+		        	element.classList.remove('hidden');
+		        });
+		    } else {
+		    	pageCElements.forEach(element => {
+		    		element.classList.remove('hidden');
+		    	})
+		    };
+		});
+
+		//게임//
+		var sv = 0;
+		const score = document.getElementById('score')
+		score.value = "획득 점수: " + sv;
+		let isClickEnabled = true;
+
+		function gameBox(){
+			var pillbox = document.createElement("div")
+			pillbox.id = "pillbox";
+			var w = Math.random() * (window.innerWidth - 20);
+			var h = Math.random() * (window.innerHeight - 20);
+			pillbox.style.left = w + "px";
+			pillbox.style.top = h + "px";
+			pillbox.onclick = function(){
+				if(isClickEnabled){
+					sv += 1;
+					score.value = "획득 점수: " + sv;
+					pillbox.parentNode.removeChild(pillbox);
+					gameBox();
+				}
+			}
+			document.body.appendChild(pillbox);
+		}
+
+		const rankData = [
+	        { rank: "F", minScore: 0, maxScore: 3 },
+	        { rank: "D", minScore: 4, maxScore: 8 },
+	        { rank: "C", minScore: 9, maxScore: 15 },
+	        { rank: "B", minScore: 16, maxScore: 24 },
+	        { rank: "A", minScore: 25, maxScore: 35 },
+	        { rank: "S", minScore: 36, maxScore: 48 },
+	        { rank: "S+", minScore: 49, maxScore: 999 },
+    	];
+	</script>
+</body>
+</html>
